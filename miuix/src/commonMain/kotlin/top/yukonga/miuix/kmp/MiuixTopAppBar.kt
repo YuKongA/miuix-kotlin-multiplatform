@@ -10,9 +10,6 @@ import androidx.compose.animation.core.animateTo
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.rememberSplineBasedDecay
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -86,31 +83,11 @@ fun MiuixTopAppBar(
             )
         }
 
-    // Set up support for resizing the top app bar when vertically dragging the bar itself.
-    val appBarDragModifier =
-        if (scrollBehavior != null && !scrollBehavior.isPinned) {
-            Modifier.draggable(
-                orientation = Orientation.Vertical,
-                state =
-                rememberDraggableState { delta -> scrollBehavior.state.heightOffset += delta },
-                onDragStopped = { velocity ->
-                    settleAppBar(
-                        scrollBehavior.state,
-                        velocity,
-                        scrollBehavior.flingAnimationSpec,
-                        scrollBehavior.snapAnimationSpec
-                    )
-                }
-            )
-        } else {
-            Modifier
-        }
-
     // Compose a Surface with a TopAppBarLayout content.
     // The surface's background color is animated as specified above.
     // The height of the app bar is determined by subtracting the bar's height offset from the
     // app bar's defined constant height value (i.e. the ContainerHeight token).
-    MiuixSurface(modifier = modifier.then(appBarDragModifier)) {
+    MiuixSurface(modifier = modifier) {
         Column {
             TopAppBarLayout(
                 modifier = Modifier.windowInsetsPadding(windowInsets)
@@ -402,9 +379,9 @@ private class ExitUntilCollapsedScrollBehavior(
             }
 
             override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                println("vailable: $available")
                 val superConsumed = super.onPostFling(consumed, available)
-                return superConsumed +
-                        settleAppBar(state, available.y, flingAnimationSpec, snapAnimationSpec)
+                return superConsumed + settleAppBar(state, available.y, flingAnimationSpec, snapAnimationSpec)
             }
         }
 }
@@ -420,6 +397,7 @@ private suspend fun settleAppBar(
     // Note that we don't check for 0f due to float precision with the collapsedFraction
     // calculation.
     if (state.collapsedFraction < 0.01f || state.collapsedFraction == 1f) {
+        println("state.collapsedFraction: ${state.collapsedFraction}")
         return Velocity.Zero
     }
     var remainingVelocity = velocity
@@ -457,7 +435,7 @@ private suspend fun settleAppBar(
         }
     }
 
-    return Velocity(0f, remainingVelocity)
+    return Velocity.Zero
 }
 
 private val TopAppBarHorizontalPadding = 28.dp
@@ -492,7 +470,6 @@ private fun TopAppBarLayout(
         targetValue = if (1f - extOffset.coerceIn(0f, 1f) == 0f) 1f else 0f,
         animationSpec = tween(durationMillis = 150)
     )
-    println((abs(scrolledOffset.offset()) / expandedHeightPx * 2))
     val translationY by animateFloatAsState(
         targetValue = if (extOffset > 1f) 0f else 10f,
         animationSpec = tween(durationMillis = 150)
