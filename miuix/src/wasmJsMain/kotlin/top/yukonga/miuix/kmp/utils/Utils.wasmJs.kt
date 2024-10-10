@@ -2,19 +2,21 @@ package top.yukonga.miuix.kmp.utils
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.browser.window
 import org.w3c.dom.events.KeyboardEvent
-import kotlin.math.roundToInt
 
 @Composable
+@OptIn(ExperimentalComposeUiApi::class)
 actual fun getWindowSize(): WindowSize {
-    val density = LocalDensity.current.density
-    val width = window.innerWidth * density
-    val height = window.innerHeight * density
-    return WindowSize(width.roundToInt(), height.roundToInt())
+    val window = LocalWindowInfo.current
+    return WindowSize(
+        width = window.containerSize.width,
+        height = window.containerSize.height
+    )
 }
 
 actual fun platform(): Platform = Platform.WasmJs

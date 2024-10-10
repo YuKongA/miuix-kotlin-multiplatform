@@ -16,10 +16,8 @@ import androidx.window.layout.WindowMetricsCalculator
 actual fun getWindowSize(): WindowSize {
     val context = LocalContext.current
     val windowMetrics: WindowMetrics = WindowMetricsCalculator.getOrCreate().computeCurrentWindowMetrics(context)
-
     val widthPx = windowMetrics.bounds.width()
     val heightPx = windowMetrics.bounds.height()
-
     return WindowSize(widthPx, heightPx)
 }
 

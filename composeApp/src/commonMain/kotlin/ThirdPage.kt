@@ -5,10 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import top.yukonga.miuix.kmp.basic.LazyColumn
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.extra.SuperDropdown
 import top.yukonga.miuix.kmp.extra.SuperSwitch
-import top.yukonga.miuix.kmp.basic.LazyColumn
 import top.yukonga.miuix.kmp.utils.Platform
 import top.yukonga.miuix.kmp.utils.getWindowSize
 import top.yukonga.miuix.kmp.utils.platform
@@ -65,7 +65,8 @@ fun ThirdPage(
                 title = "Color Mode",
                 items = listOf("System", "Light", "Dark"),
                 selectedIndex = colorMode.value,
-                onSelectedIndexChange = { colorMode.value = it }
+                onSelectedIndexChange = { colorMode.value = it },
+                horizontalPadding = 12.dp
             )
         }
         item {

@@ -5,9 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import top.yukonga.miuix.kmp.basic.LazyColumn
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.extra.SuperDropdown
-import top.yukonga.miuix.kmp.basic.LazyColumn
 
 @Composable
 fun SecondPage(
@@ -28,6 +29,7 @@ fun SecondPage(
                 items = dropdownOptions,
                 selectedIndex = dropdownSelectedOption.value,
                 onSelectedIndexChange = { newOption -> dropdownSelectedOption.value = newOption },
+                horizontalPadding = 12.dp
             )
         }
         item {

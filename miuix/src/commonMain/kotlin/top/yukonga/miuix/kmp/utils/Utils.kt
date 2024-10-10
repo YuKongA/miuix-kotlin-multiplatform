@@ -4,6 +4,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 
 /**
+ * Window size data class.
+ */
+data class WindowSize(val width: Int, val height: Int)
+
+/**
+ * Returns the current window size.
+ */
+@Composable
+expect fun getWindowSize(): WindowSize
+
+/**
  * Platform enum class.
  */
 enum class Platform {
@@ -19,17 +30,6 @@ enum class Platform {
  * Returns the current platform name.
  */
 expect fun platform(): Platform
-
-/**
- * Window size data class.
- */
-data class WindowSize(val width: Int, val height: Int)
-
-/**
- * Returns the current window size.
- */
-@Composable
-expect fun getWindowSize(): WindowSize
 
 /**
  * Returns the rounded corner of the current device.

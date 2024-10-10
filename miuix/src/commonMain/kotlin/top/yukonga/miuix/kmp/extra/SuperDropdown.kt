@@ -79,6 +79,7 @@ import kotlin.math.roundToInt
  * @param summary The summary of the [SuperDropdown].
  * @param summaryColor The color of the summary.
  * @param items The options of the [SuperDropdown].
+ * @param horizontalPadding The horizontal padding of the [SuperDropdown].
  * @param alwaysRight Whether the popup is always show on the right side.
  * @param insideMargin The margin inside the [SuperDropdown].
  * @param defaultWindowInsetsPadding Whether to apply default window insets padding to the [SuperDropdown].
@@ -95,6 +96,7 @@ fun SuperDropdown(
     summaryColor: Color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
     items: List<String>,
     alwaysRight: Boolean = false,
+    horizontalPadding: Dp = 0.dp,
     insideMargin: DpSize = DpSize(16.dp, 16.dp),
     defaultWindowInsetsPadding: Boolean = true,
     selectedIndex: Int,
@@ -207,7 +209,7 @@ fun SuperDropdown(
                     LazyColumn(
                         modifier = Modifier
                             .padding(
-                                horizontal = (windowWeightPx.dp - componentWidthPx.dp) / 2 / density.density - if (defaultWindowInsetsPadding)
+                                horizontal = horizontalPadding + (windowWeightPx.dp - componentWidthPx.dp) / 2 / density.density - if (defaultWindowInsetsPadding)
                                     (WindowInsets.displayCutout.asPaddingValues(density).calculateLeftPadding(LayoutDirection.Ltr) +
                                             WindowInsets.displayCutout.asPaddingValues(density).calculateRightPadding(LayoutDirection.Ltr)) / 2 else 0.dp
                             )

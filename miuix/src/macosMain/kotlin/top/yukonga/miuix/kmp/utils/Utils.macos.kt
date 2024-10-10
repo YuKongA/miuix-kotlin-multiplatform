@@ -2,29 +2,24 @@ package top.yukonga.miuix.kmp.utils
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.useContents
-import platform.AppKit.NSApplication
 import platform.AppKit.NSEvent
 import platform.AppKit.NSEventMaskKeyDown
-import platform.AppKit.NSWindow
-import kotlin.math.roundToInt
+
+@Composable
+@OptIn(ExperimentalComposeUiApi::class)
+actual fun getWindowSize(): WindowSize {
+    val window = LocalWindowInfo.current
+    return WindowSize(
+        width = window.containerSize.width,
+        height = window.containerSize.height
+    )
+}
 
 actual fun platform(): Platform = Platform.MacOS
-
-@OptIn(ExperimentalForeignApi::class)
-@Composable
-actual fun getWindowSize(): WindowSize {
-    val window: NSWindow? = NSApplication.sharedApplication.mainWindow
-    val contentLayoutRect = window?.contentLayoutRect ?: return WindowSize(0, 0)
-    val density = LocalDensity.current.density
-    val width = contentLayoutRect.useContents { size.width } * density
-    val height = contentLayoutRect.useContents { size.height } * density
-    return WindowSize(width.roundToInt(), height.roundToInt())
-}
 
 @Composable
 actual fun getRoundedCorner(): Dp = 0.dp

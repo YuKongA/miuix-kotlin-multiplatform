@@ -1,38 +1,20 @@
 package top.yukonga.miuix.kmp.utils
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
-import kotlin.math.roundToInt
-
-object WindowProvider {
-    private var composeWindow: ComposeWindow? = null
-
-    fun init(window: ComposeWindow) {
-        composeWindow = window
-    }
-
-    fun getWindowSize(): WindowSize {
-        return composeWindow?.let { window ->
-            WindowSize(
-                width = window.bounds.width - window.insets.left - window.insets.right,
-                height = window.bounds.height - window.insets.top
-            )
-        } ?: WindowSize(0, 0)
-    }
-}
 
 @Composable
+@OptIn(ExperimentalComposeUiApi::class)
 actual fun getWindowSize(): WindowSize {
-    val density = LocalDensity.current.density
-    val windowSize = WindowProvider.getWindowSize()
+    val window = LocalWindowInfo.current
     return WindowSize(
-        width = (windowSize.width * density).roundToInt(),
-        height = (windowSize.height * density).roundToInt()
+        width = window.containerSize.width,
+        height = window.containerSize.height
     )
 }
 
