@@ -337,6 +337,9 @@ private fun AppNavHost(
         entry<Route.OverscrollLoadMore>(swipeDismiss = swipeBackDirection) {
             OverscrollLoadMorePage(padding = padding)
         }
+        entry<Route.Glass>(swipeDismiss = swipeBackDirection) {
+            GlassPage(padding = padding)
+        }
     }
 }
 

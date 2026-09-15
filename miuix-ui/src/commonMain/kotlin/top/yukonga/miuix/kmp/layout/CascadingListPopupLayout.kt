@@ -4,6 +4,7 @@
 package top.yukonga.miuix.kmp.layout
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.SpringSpec
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -23,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Placeable
@@ -68,6 +70,43 @@ private const val PRIMARY_SHRUNK_SCALE = 0.95f
 internal const val ENTER_SCALE_FROM = 0.15f
 internal const val ENTER_SCALE_RANGE = 1f - ENTER_SCALE_FROM
 
+/**
+ * The springs and the figures a cascading popup stacks on.
+ *
+ * A menu built outside this file stacks the same way by reading them from here. Restating any of
+ * them elsewhere lets the two drift apart, and the stacking is one motion however the panel is
+ * painted.
+ */
+object CascadingPopupDefaults {
+
+    /** How far the first menu shrinks while a second one stands in front of it. */
+    val PrimaryShrunkScale: Float = PRIMARY_SHRUNK_SCALE
+
+    /** How far the trigger row's chevron turns once the second menu is open, in degrees. */
+    fun arrowRotation(layoutDirection: LayoutDirection): Float = if (layoutDirection == LayoutDirection.Ltr) -90f else 90f
+
+    /**
+     * The spring the second menu opens and closes on.
+     *
+     * @param expanding Whether the menu is opening. It closes on a shorter and firmer spring.
+     */
+    fun <T> expandSpring(expanding: Boolean): SpringSpec<T> = if (expanding) {
+        folmeSpring(EXPAND_SPRING_DAMPING, EXPAND_SPRING_RESPONSE)
+    } else {
+        folmeSpring(MAIN_SPRING_DAMPING, COLLAPSE_SPRING_RESPONSE)
+    }
+
+    /**
+     * The spring the chevron turns on, which trails the panel on the way back.
+     *
+     * @param expanding Whether the menu is opening.
+     */
+    fun <T> arrowSpring(expanding: Boolean): SpringSpec<T> = folmeSpring(
+        damping = MAIN_SPRING_DAMPING,
+        response = if (expanding) ARROW_EXPAND_SPRING_RESPONSE else ARROW_COLLAPSE_SPRING_RESPONSE,
+    )
+}
+
 private data class CascadingItemPosition(
     val entryIndex: Int,
     val itemIndex: Int,
@@ -99,6 +138,7 @@ internal fun CascadingListPopupLayout(
     maxHeight: Dp? = null,
     minWidth: Dp = 200.dp,
     collapseOnSelection: Boolean = true,
+    surface: (@Composable (Shape) -> Modifier)? = null,
 ) {
     val internalVisible = remember { mutableStateOf(false) }
     val enterFraction = remember { Animatable(0f) }
@@ -128,9 +168,7 @@ internal fun CascadingListPopupLayout(
     val arrowRotation = remember { Animatable(0f) }
 
     val layoutDirection = LocalLayoutDirection.current
-    val arrowEndDeg = remember(layoutDirection) {
-        if (layoutDirection == LayoutDirection.Ltr) -90f else 90f
-    }
+    val arrowEndDeg = remember(layoutDirection) { CascadingPopupDefaults.arrowRotation(layoutDirection) }
 
     val currentOnDismiss by rememberUpdatedState(onDismissRequest)
     val currentOnDismissFinished by rememberUpdatedState(onDismissFinished)
@@ -172,11 +210,7 @@ internal fun CascadingListPopupLayout(
             backExpandProgress.snapTo(0f)
         }
         val target = if (itemPosition != null) 1f else 0f
-        val mainSpec = if (target == 1f) {
-            folmeSpring(EXPAND_SPRING_DAMPING, EXPAND_SPRING_RESPONSE)
-        } else {
-            folmeSpring<Float>(MAIN_SPRING_DAMPING, COLLAPSE_SPRING_RESPONSE)
-        }
+        val mainSpec = CascadingPopupDefaults.expandSpring<Float>(target == 1f)
         launch {
             expandFraction.animateTo(target, mainSpec)
             // Settle on the main spring — the slower arrowRotation would otherwise hold the
@@ -189,21 +223,13 @@ internal fun CascadingListPopupLayout(
         }
         launch {
             primaryScale.animateTo(
-                if (target == 1f) PRIMARY_SHRUNK_SCALE else 1f,
+                if (target == 1f) CascadingPopupDefaults.PrimaryShrunkScale else 1f,
                 mainSpec,
             )
         }
         launch { maskAlpha.animateTo(target, mainSpec) }
         launch {
-            val arrowResponse = if (target == 1f) {
-                ARROW_EXPAND_SPRING_RESPONSE
-            } else {
-                ARROW_COLLAPSE_SPRING_RESPONSE
-            }
-            arrowRotation.animateTo(
-                target * arrowEndDeg,
-                folmeSpring(MAIN_SPRING_DAMPING, arrowResponse),
-            )
+            arrowRotation.animateTo(target * arrowEndDeg, CascadingPopupDefaults.arrowSpring(target == 1f))
         }
     }
 
@@ -361,6 +387,7 @@ internal fun CascadingListPopupLayout(
                         layoutDirection = layoutDirection,
                         surfaceColor = surfaceColor,
                         maskColor = maskColor,
+                        surface = surface,
                     )
                 }
             }
@@ -408,6 +435,7 @@ private fun CascadingMorphSubLayout(
     layoutInfo: ListPopupLayoutInfo,
     layoutDirection: LayoutDirection,
     surfaceColor: Color,
+    surface: (@Composable (Shape) -> Modifier)?,
     maskColor: Color,
 ) {
     SubcomposeLayout(modifier = Modifier.fillMaxSize()) { constraints ->
@@ -454,6 +482,7 @@ private fun CascadingMorphSubLayout(
                 maskAlpha = maskAlpha,
                 maskColor = maskColor,
                 onCollapseSecondary = onCollapseSecondary,
+                surface = surface,
             )
         }.map { it.measure(primaryConstraints) }
 

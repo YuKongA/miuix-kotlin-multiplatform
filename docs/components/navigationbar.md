@@ -307,6 +307,42 @@ Scaffold(
 }
 ```
 
+### GlassNavigationBar sizing
+
+`GlassNavigationBar` in the optional `miuix-glass` module uses 28dp icons and 6dp
+vertical content padding. Captions use the theme's `footnote2` style with an 11dp
+font size (16dp at a system font scale of 1.6 or greater), converted to text units
+without applying font scaling a second time. Captions support two lines and ellipsis.
+`height` is a minimum (54dp by default), so longer captions can increase the height.
+The default capsule shape follows the measured size. These defaults do not change
+`NavigationBar` or `FloatingNavigationBar`.
+
+```kotlin
+GlassNavigationBar(
+    items = items,
+    selectedIndex = selectedIndex,
+    onSelect = { selectedIndex = it },
+    backdrop = backdrop,
+    modifier = Modifier.padding(horizontal = 24.dp),
+)
+```
+
+The GlassPage example additionally applies the four-item wide-screen width rule
+(344dp when the overlap-adjusted available width exceeds 400dp). Its bottom margin
+is 24dp when the navigation-bar inset is below 24dp, otherwise the inset plus 8dp.
+Outer placement remains the caller's responsibility; the component does not add
+system-bar insets itself.
+
+During dragging, the indicator follows a spring (damping 1, response 0.15s).
+Its trailing edge stretches by four times the pointer movement per event, capped
+at 60px, and stops stretching when the leading edge reaches the bar boundary.
+The rendered edges are limited to the first and last item bounds on every frame,
+so spring overshoot cannot push the indicator beyond the outermost destinations.
+Crossing destinations uses the directional edge springs. Release continues from
+the animated bounds and velocities rather than snapping to the pointer position.
+`onSelect` still fires on press and when dragging into another destination;
+this does not introduce deferred selection on release.
+
 #### Using FloatingNavigationBar
 
 ```kotlin

@@ -19,6 +19,46 @@ import top.yukonga.miuix.kmp.basic.rememberTopAppBarState
 
 ## Basic Usage
 
+### Glass top bar material visibility
+
+`GlassTopAppBar` from the optional `miuix-glass` module accepts a required
+`isContentScrolled` parameter in a separate overload. Pass `listState.canScrollBackward`
+to start the material transition when content leaves the top and reverse it on return,
+even if the large title stays collapsed. The overlay mask uses a 100ms linear transition;
+navigation and action button surfaces share a 350ms linear transition. The existing
+Compose shadow appearance and scroll ramp are retained.
+
+`GlassTopAppBarDefaults.HorizontalPadding` is 12dp on both sides of the top controls.
+Use the same value for page cards and tabs to align their outer edges.
+
+```kotlin
+GlassTopAppBar(
+    title = "Glass",
+    isContentScrolled = listState.canScrollBackward,
+    backdrop = backdrop,
+    scrollBehavior = scrollBehavior,
+    navigationIcon = {
+        GlassIconButton(onClick = { navigator.pop() }) {
+            Icon(
+                imageVector = MiuixIcons.Back,
+                contentDescription = "Back",
+                modifier = Modifier.size(20.dp),
+            )
+        }
+    },
+)
+```
+
+Both `navigationIcon` and `actions` render their content directly. Use `GlassIconButton`
+in either slot for matching press feedback; the bar does not add a second glass surface.
+Buttons inherit the bar's material, size, shape, fill, stroke and shadow defaults.
+Replace a bare clickable navigation icon with `GlassIconButton(onClick = { navigator.pop() }) { Icon(...) }`.
+
+The overload without `isContentScrolled` remains available and derives visibility from
+`scrollBehavior.state.contentOffset`. Use the explicit overload when the list's exact
+top position is available. A transforming popup anchored to a `GlassIconButton` inherits
+the button's material and current surface opacity automatically.
+
 ### Small TopAppBar
 
 ```kotlin
@@ -272,4 +312,23 @@ Box(modifier = Modifier.fillMaxSize()) {
         )
     }
 }
+```
+
+### Search transitions with glass top bars
+
+`GlassTopAppBar` provides `contentModifier: Modifier = Modifier` for transforming
+its foreground independently of the background band. Keep search-mode scale,
+alpha and blur on `contentModifier`; `modifier` transforms the entire bar,
+including the band that masks scrolling content.
+
+Both `GlassTopAppBar` and `BlurTopAppBar` accept `titleAlpha: () -> Float = { 1f }`.
+This is read during drawing and multiplies the existing collapse opacity of the
+compact and large title containers, including the subtitle.
+
+```kotlin
+GlassTopAppBar(
+    title = "Glass",
+    contentModifier = Modifier.graphicsLayer { alpha = foregroundAlpha.value },
+    titleAlpha = { titleOpacity.value },
+)
 ```

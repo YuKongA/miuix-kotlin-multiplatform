@@ -307,6 +307,34 @@ Scaffold(
 }
 ```
 
+### GlassNavigationBar 尺寸
+
+可选模块 `miuix-glass` 中的 `GlassNavigationBar` 使用 28dp 图标和上下各 6dp
+的内容留白。标签基于主题的 `footnote2` 样式，字号为 11dp；系统字体缩放达到
+1.6 时改为 16dp，转换为文字单位时不再重复应用字体缩放。标签最多两行，超出时
+显示省略号。`height` 为最小高度（默认 54dp），较长的标签可撑高底栏，默认胶囊
+形状跟随实际尺寸。这些默认值不影响 `NavigationBar` 或 `FloatingNavigationBar`。
+
+```kotlin
+GlassNavigationBar(
+    items = items,
+    selectedIndex = selectedIndex,
+    onSelect = { selectedIndex = it },
+    backdrop = backdrop,
+    modifier = Modifier.padding(horizontal = 24.dp),
+)
+```
+
+GlassPage 示例另行应用四项目宽屏规则：计入项目重叠后的可用宽度超过 400dp 时，
+底栏宽度为 344dp。底部导航栏 inset 小于 24dp 时，底部间距为 24dp，否则为
+inset 加 8dp。外部位置由调用方控制，组件不自行添加系统栏 inset。
+
+拖动时，指示器通过阻尼 1、响应时间 0.15 秒的弹簧跟随手指，尾部按每次事件的
+移动距离拉伸 4 倍，最多 60px；前缘到达底栏边界时停止拉伸。每帧显示的左右边缘
+均限制在首尾项目的外边界内，避免弹簧过冲导致越界。跨项目时使用左右
+边缘的快慢弹簧，松手后从当前动画位置和速度继续归位，不先跳到手指目标位置。
+`onSelect` 仍在按下和拖入其他项目时触发，此调整不包含松手后才提交选择的行为。
+
 #### 使用 FloatingNavigationBar
 
 ```kotlin

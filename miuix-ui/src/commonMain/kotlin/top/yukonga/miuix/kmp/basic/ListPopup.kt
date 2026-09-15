@@ -636,7 +636,7 @@ fun ListPopupContent(
  * [squircleEnabled] is `false`, [addSquircleRect] falls back to a plain rounded rectangle to
  * match the squircle modifiers' fallback rendering.
  */
-internal fun Modifier.popupClipReveal(
+fun Modifier.popupClipReveal(
     fractionProgress: () -> Float,
     popupLayoutPosition: PopupLayoutPosition,
     cornerRadius: Dp,

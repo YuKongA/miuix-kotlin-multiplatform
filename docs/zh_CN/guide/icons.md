@@ -244,3 +244,28 @@ Miuix 图标支持五种粗细，对应字体源 `misymbol_vf.ttf` 的 5 个命�
 | `Years` | <img src="/icons/extended/Years.Light.svg" width="24" height="24" /> | <img src="/icons/extended/Years.Normal.svg" width="24" height="24" /> | <img src="/icons/extended/Years.Regular.svg" width="24" height="24" /> | <img src="/icons/extended/Years.Medium.svg" width="24" height="24" /> | <img src="/icons/extended/Years.Demibold.svg" width="24" height="24" /> |
 | `ZoomOut` | <img src="/icons/extended/ZoomOut.Light.svg" width="24" height="24" /> | <img src="/icons/extended/ZoomOut.Normal.svg" width="24" height="24" /> | <img src="/icons/extended/ZoomOut.Regular.svg" width="24" height="24" /> | <img src="/icons/extended/ZoomOut.Medium.svg" width="24" height="24" /> | <img src="/icons/extended/ZoomOut.Demibold.svg" width="24" height="24" /> |
 
+
+## OS4 符号图标
+
+`os4` 包包含从 OS4 `misymbol_vf.ttf` 提取的全部 176 个图标，每个提供字体原生
+五种字重：Light 250、Normal 305、Regular 330、Medium 430、Demibold 500。
+默认访问使用 Regular。
+
+```kotlin
+import top.yukonga.miuix.kmp.icon.os4.ChevronBackward
+import top.yukonga.miuix.kmp.icon.os4.Close
+import top.yukonga.miuix.kmp.icon.os4.Search
+
+MiuixIcons.Os4.Search
+MiuixIcons.Os4.Close
+MiuixIcons.Os4.Light.Close
+MiuixIcons.Os4.ChevronBackward
+```
+
+`Back` 对应字体中的横向箭头；`ChevronBackward` 才是 OS4 顶栏左尖括号
+（之前临时命名为 `Os4.Back`）。默认 24dp 画布对应原版 21dp 字号，尖括号保留
+实测的 1.8dp 视觉偏移。方向性的导航和回复图标支持 RTL 镜像。
+
+实现沿用带缓存的 ImageVector，无运行时字体依赖；着色和按压反馈交由按钮处理。
+Icon 示例页可切换 OS3/OS4 并查看五种字重。
+原有 extended 图标保持不变。

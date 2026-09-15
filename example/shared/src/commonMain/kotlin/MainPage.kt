@@ -39,6 +39,7 @@ import component.checkboxSection
 import component.colorPickerSection
 import component.dialogSection
 import component.dropdownSection
+import component.glassEntrySection
 import component.numberPickerSection
 import component.otherPageSection
 import component.progressIndicatorSection
@@ -359,6 +360,7 @@ fun MainPage(
                     }
                 }
                 if (notExpanded) {
+                    glassEntrySection()
                     basicComponentSection()
                     switchSection()
                     checkboxSection()

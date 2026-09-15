@@ -35,4 +35,7 @@ sealed interface Route : NavKey {
 
     @Serializable
     data object OverscrollLoadMore : Route
+
+    @Serializable
+    data object Glass : Route
 }

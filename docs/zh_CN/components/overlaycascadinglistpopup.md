@@ -23,6 +23,58 @@ popupHost: MiuixPopupHost
 
 ## 引入
 
+### OS4 玻璃二级菜单
+
+可选模块 `miuix-glass` 提供 `GlassSecondaryPopup`，可在同一个根 `Box` 中配合
+`GlassTransformPopup` 使用。这是独立的玻璃 API，不改变
+`OverlayCascadingListPopup` 或其 `surface` 接口。
+
+二级面板从触发行加上下内容留白的矩形展开，不淡入淡出或模糊行内容，玻璃材质的
+透明效果保持不变；四条裁剪边同时
+运动，行内容保持原尺寸。面板按起始边对齐（RTL 镜像），下方空间不足时整体上移。
+展开使用原生默认弹簧（0.95 / 0.35 秒），收起使用 0.95 / 0.2 秒。一级菜单通过
+`stacked` 状态缩至 0.95 并加遮罩，采用相同的展开／收起时序。
+
+```kotlin
+GlassSecondaryPopup(
+    show = submenuExpanded,
+    onDismissRequest = { submenuExpanded = false },
+    anchorBounds = frozenTriggerBounds,
+    backdrop = secondaryBackdrop,
+    materialAnchor = menuAnchor, // 与 GlassTransformPopup 使用同一锚点
+    sizing = GlassPopupSizing(minWidth = primaryMenuWidth),
+    onDismissFinished = { submenuPresent = false },
+) {
+    GlassPopupItem(text = "排序方式", onClick = { submenuExpanded = false })
+    GlassPopupItem(text = "名称", onClick = { /* 选择 */ })
+}
+```
+
+收起期间应保留组件调用。展开前冻结触发行坐标，直到 `onDismissFinished` 后再恢复
+坐标采集，不能在 `show` 刚变为 false 时恢复。传入一级按钮的 `materialAnchor`
+可共享模糊、混色与高光；透明度和阴影仍取自 `visuals`。显式传入的 `backdrop`
+优先于锚点背景，传 null 时才回退到锚点背景。返回键和外部点击请求收起，选项回调自行决定保留
+或关闭菜单；打开动画期间允许行点击，请求关闭后立即禁止，包括一级 `GlassTransformPopup` 缩回按钮的过程。
+二级菜单的显示应以一级菜单仍打开为前提，不能反过来重新打开一级菜单。
+已有的 `GlassPopup(secondary = true)` 签名
+会转入此几何实现，但不提供锚点材质继承。完整配对示例见 `GlassPage`。
+
+在包住页面和一级菜单的 `Box` 上使用 `Modifier.layerBackdrop(secondaryBackdrop)`，
+并将二级菜单放在这个 `Box` 外，再传入 `backdrop = secondaryBackdrop`。这样二级模糊
+会包含一级菜单的内容、缩放和遮罩，同时不会采样自身。完整结构见 `GlassPage`。
+一级遮罩独立执行透明度弹簧：展开 0.95 / 0.35 秒，收起 0.95 / 0.2 秒；
+停止阈值为 `(1 / 256) × 0.75`，透明度不超过 `1 / 256` 时隐藏，与原实现一致。
+
+预测返回优先预览二级菜单收起；没有二级菜单时，预览一级菜单缩回按钮。
+取消手势时弹回展开状态，完成手势后从当前进度继续关闭。共用的
+`materialAnchor` 会同步一级菜单的缩放和遮罩。自定义子菜单箭头可通过
+`arrowRotation = { rotation * (1f - menuAnchor.secondaryBackProgress) }`
+跟随相同进度。宿主需要提供导航事件分发器，才能接收返回手势。
+
+弹出层在透明度变化时会保留完整阴影所需的绘制范围，包括预测返回到页面顶部无可见材质的按钮时，避免阴影被面板矩形裁切。
+
+### Overlay 引入
+
 ```kotlin
 import top.yukonga.miuix.kmp.overlay.OverlayCascadingListPopup
 import top.yukonga.miuix.kmp.basic.DropdownEntry

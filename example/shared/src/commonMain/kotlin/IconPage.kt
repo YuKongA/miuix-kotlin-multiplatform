@@ -49,6 +49,7 @@ import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.VerticalScrollBar
 import top.yukonga.miuix.kmp.basic.rememberScrollBarAdapter
 import top.yukonga.miuix.kmp.blur.layerBackdrop
@@ -90,7 +91,8 @@ fun IconsPage(
     var searchOffsetY by remember { mutableStateOf(0.dp) }
 
     // Icon data
-    val allIcons = remember { MiuixIcons.All }
+    var os4 by remember { mutableStateOf(false) }
+    val allIcons = remember(os4) { if (os4) MiuixIcons.Os4.All else MiuixIcons.All }
     val regularIcons = remember(allIcons) { allIcons["Regular"] ?: emptyList() }
     val weightVariants: List<Pair<String, List<ImageVector>>> = remember(allIcons) {
         listOf("Light", "Normal", "Regular", "Medium", "Demibold").map { name ->
@@ -237,6 +239,18 @@ fun IconsPage(
                 ),
                 contentPadding = contentPadding,
             ) {
+                item(key = "iconFamily") {
+                    Row(modifier = Modifier.padding(horizontal = 12.dp)) {
+                        TextButton(text = if (os4) "OS3" else "OS3 ✓", onClick = {
+                            os4 = false
+                            expandedIndex = -1
+                        })
+                        TextButton(text = if (os4) "OS4 ✓" else "OS4", onClick = {
+                            os4 = true
+                            expandedIndex = -1
+                        })
+                    }
+                }
                 item(key = "iconsHeader") {
                     Spacer(modifier = Modifier.height(6.dp))
                     Row(

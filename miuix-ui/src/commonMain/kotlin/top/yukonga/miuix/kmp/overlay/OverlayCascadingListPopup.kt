@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.basic.DropdownColors
@@ -21,13 +22,56 @@ import top.yukonga.miuix.kmp.layout.CascadingListPopupLayout
 import top.yukonga.miuix.kmp.utils.MiuixPopupUtils.Companion.PopupLayout
 
 /**
- * A cascading list popup rendered inside the host `Scaffold`. Cascading depth is limited to 2.
+ * A cascading list popup rendered inside the host `Scaffold`, using the traditional solid panel
+ * fill and default shadow. Cascading depth is limited to 2.
+ */
+@Composable
+fun OverlayCascadingListPopup(
+    show: Boolean,
+    entries: List<DropdownEntry>,
+    onDismissRequest: () -> Unit,
+    popupModifier: Modifier = Modifier,
+    onDismissFinished: (() -> Unit)? = null,
+    popupPositionProvider: PopupPositionProvider = ListPopupDefaults.DropdownPositionProvider,
+    alignment: PopupPositionProvider.Align = PopupPositionProvider.Align.End,
+    enableWindowDim: Boolean = true,
+    maxHeight: Dp? = null,
+    minWidth: Dp = 200.dp,
+    renderInRootScaffold: Boolean = true,
+    dropdownColors: DropdownColors = DropdownDefaults.dropdownColors(),
+    collapseOnSelection: Boolean = true,
+) {
+    OverlayCascadingListPopup(
+        show = show,
+        entries = entries,
+        onDismissRequest = onDismissRequest,
+        popupModifier = popupModifier,
+        onDismissFinished = onDismissFinished,
+        popupPositionProvider = popupPositionProvider,
+        alignment = alignment,
+        enableWindowDim = enableWindowDim,
+        maxHeight = maxHeight,
+        minWidth = minWidth,
+        renderInRootScaffold = renderInRootScaffold,
+        dropdownColors = dropdownColors,
+        collapseOnSelection = collapseOnSelection,
+        surface = null,
+    )
+}
+
+/**
+ * A cascading list popup rendered inside the host `Scaffold`, with a caller-provided panel
+ * surface. Pass `glassSurface(...)` from `miuix-glass` to give it the OS4 glass material.
+ * Cascading depth is limited to 2.
  *
  * @param show Whether the popup is shown.
  * @param entries Grouped dropdown entries; top-level [DropdownItem]s with non-empty
  *   [DropdownItem.children] become submenu triggers. Keep the entry and item order stable while the
  *   popup is shown; item state such as [DropdownItem.selected] may change.
  * @param onDismissRequest Invoked when the popup wants to be dismissed.
+ * @param surface Paints the panel's body, given the silhouette it must fill. `null` uses the plain
+ *   shadow and fill. A material library hands its own surface in here rather than reimplementing
+ *   the popup.
  * @param onDismissFinished Invoked after the exit animation finishes.
  * @param popupModifier Modifier applied to the popup body.
  * @param popupPositionProvider Position strategy for the primary popup relative to its anchor.
@@ -44,6 +88,7 @@ fun OverlayCascadingListPopup(
     show: Boolean,
     entries: List<DropdownEntry>,
     onDismissRequest: () -> Unit,
+    surface: (@Composable (Shape) -> Modifier)?,
     popupModifier: Modifier = Modifier,
     onDismissFinished: (() -> Unit)? = null,
     popupPositionProvider: PopupPositionProvider = ListPopupDefaults.DropdownPositionProvider,
@@ -82,5 +127,6 @@ fun OverlayCascadingListPopup(
         minWidth = minWidth,
         dropdownColors = dropdownColors,
         collapseOnSelection = collapseOnSelection,
+        surface = surface,
     )
 }

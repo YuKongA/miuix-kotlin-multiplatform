@@ -244,3 +244,29 @@ Extended icons include a wide variety of icons for different use cases. Below is
 | `Years` | <img src="/icons/extended/Years.Light.svg" width="24" height="24" /> | <img src="/icons/extended/Years.Normal.svg" width="24" height="24" /> | <img src="/icons/extended/Years.Regular.svg" width="24" height="24" /> | <img src="/icons/extended/Years.Medium.svg" width="24" height="24" /> | <img src="/icons/extended/Years.Demibold.svg" width="24" height="24" /> |
 | `ZoomOut` | <img src="/icons/extended/ZoomOut.Light.svg" width="24" height="24" /> | <img src="/icons/extended/ZoomOut.Normal.svg" width="24" height="24" /> | <img src="/icons/extended/ZoomOut.Regular.svg" width="24" height="24" /> | <img src="/icons/extended/ZoomOut.Medium.svg" width="24" height="24" /> | <img src="/icons/extended/ZoomOut.Demibold.svg" width="24" height="24" /> |
 
+
+## OS4 symbol family
+
+The `os4` package contains all 176 symbols extracted from the OS4
+`misymbol_vf.ttf`, with five font-native weights: Light 250, Normal 305,
+Regular 330, Medium 430 and Demibold 500. Default access uses Regular.
+
+```kotlin
+import top.yukonga.miuix.kmp.icon.os4.ChevronBackward
+import top.yukonga.miuix.kmp.icon.os4.Close
+import top.yukonga.miuix.kmp.icon.os4.Search
+
+MiuixIcons.Os4.Search
+MiuixIcons.Os4.Close
+MiuixIcons.Os4.Light.Close
+MiuixIcons.Os4.ChevronBackward
+```
+
+`Back` is the font's horizontal arrow; `ChevronBackward` is the OS4 top-bar
+chevron (previously temporarily named `Os4.Back`). Use the default 24dp canvas
+to match the source's 21dp font size. Chevrons retain the measured 1.8dp optical
+shift. Directional navigation/reply icons mirror in RTL.
+
+These are cached ImageVectors with no runtime font dependency. Tint and press
+feedback belong to the consuming button. The Icon example page lets you switch
+between OS3 and OS4 and inspect all five weights. The existing extended icons are unchanged.

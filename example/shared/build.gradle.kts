@@ -67,6 +67,7 @@ kotlin {
                 api(projects.miuixPreference)
                 api(libs.jetbrains.compose.components.resources)
                 implementation(projects.miuixBlur)
+                implementation(projects.miuixGlass)
                 implementation(projects.miuixSquircle)
                 implementation(projects.miuixIcons)
                 implementation(projects.miuixNav)

@@ -19,6 +19,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
@@ -72,6 +73,7 @@ internal fun CascadingPrimaryContent(
     maskAlpha: () -> Float,
     maskColor: Color,
     onCollapseSecondary: () -> Unit,
+    surface: (@Composable (Shape) -> Modifier)? = null,
 ) {
     val isExpanded = expandedItem != null
     val shape = remember { RoundedCornerShape(CascadingPopupCornerRadius) }
@@ -91,8 +93,10 @@ internal fun CascadingPrimaryContent(
                 this.transformOrigin = transformOrigin
             }
             .popupClipReveal(enterFraction, popupLayoutPosition, CascadingPopupCornerRadius, isSquircleEnabled())
-            .dropShadow(shape = shape, shadow = CascadeShadow)
-            .background(color = surfaceColor),
+            .then(
+                surface?.invoke(shape)
+                    ?: Modifier.dropShadow(shape = shape, shadow = CascadeShadow).background(color = surfaceColor),
+            ),
     ) {
         Box {
             ListPopupColumn {

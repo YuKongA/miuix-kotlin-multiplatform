@@ -19,6 +19,44 @@ import top.yukonga.miuix.kmp.basic.rememberTopAppBarState
 
 ## 基本用法
 
+### 玻璃顶栏材质显示
+
+可选模块 `miuix-glass` 中的 `GlassTopAppBar` 提供带必填参数 `isContentScrolled`
+的独立重载。传入 `listState.canScrollBackward` 后，页面离开顶部时开始显示材质，
+回到顶部时反向退出，即使大标题仍处于收起状态也能正确恢复。顶栏遮罩使用 100ms
+线性过渡，导航按钮与操作按钮的表面共用 350ms 线性过渡；保留原有 Compose 阴影
+外观及随滚动变化的阴影进度。
+
+顶部两侧按钮的边距均为 `GlassTopAppBarDefaults.HorizontalPadding`（12dp）。
+页面卡片和标签复用此值，即可对齐外边缘。
+
+```kotlin
+GlassTopAppBar(
+    title = "Glass",
+    isContentScrolled = listState.canScrollBackward,
+    backdrop = backdrop,
+    scrollBehavior = scrollBehavior,
+    navigationIcon = {
+        GlassIconButton(onClick = { navigator.pop() }) {
+            Icon(
+                imageVector = MiuixIcons.Back,
+                contentDescription = "Back",
+                modifier = Modifier.size(20.dp),
+            )
+        }
+    },
+)
+```
+
+`navigationIcon` 和 `actions` 都直接绘制调用方内容。两侧均使用 `GlassIconButton`
+即可获得一致的按压反馈，导航栏不会再额外包裹玻璃背景。按钮继承导航栏的材质、
+尺寸、形状、填充、描边和阴影默认值。原有带 clickable 的导航图标应改为
+`GlassIconButton(onClick = { navigator.pop() }) { Icon(...) }`。
+
+不带 `isContentScrolled` 的原重载仍然可用，通过 `scrollBehavior.state.contentOffset`
+推导显示状态。能够获取列表准确顶部位置时，建议使用显式重载。以 `GlassIconButton`
+为锚点的变换菜单会自动继承按钮材质及当前表面透明度。
+
 ### 小标题顶部栏
 
 ```kotlin
@@ -272,4 +310,21 @@ Box(modifier = Modifier.fillMaxSize()) {
         )
     }
 }
+```
+
+### 玻璃顶栏的搜索过渡
+
+`GlassTopAppBar` 提供 `contentModifier: Modifier = Modifier`，用于独立变换前景，
+保持背景遮罩不动。搜索模式的缩放、透明度和模糊应放在 `contentModifier` 上；
+`modifier` 会变换整个顶栏，包括遮挡滚动内容的背景带。
+
+`GlassTopAppBar` 和 `BlurTopAppBar` 均支持 `titleAlpha: () -> Float = { 1f }`。
+该值在绘制阶段读取，与现有的折叠透明度相乘，作用于小标题、大标题及副标题容器。
+
+```kotlin
+GlassTopAppBar(
+    title = "Glass",
+    contentModifier = Modifier.graphicsLayer { alpha = foregroundAlpha.value },
+    titleAlpha = { titleOpacity.value },
+)
 ```

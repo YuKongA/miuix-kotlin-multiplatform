@@ -23,6 +23,67 @@ This component depends on `Scaffold` providing `MiuixPopupHost` to render popup 
 
 ## Import
 
+### OS4 glass secondary menus
+
+The optional `miuix-glass` module provides `GlassSecondaryPopup` for a
+`GlassTransformPopup` in a shared root `Box`. This is a separate glass API, not a
+change to `OverlayCascadingListPopup` or its `surface` hook.
+
+It grows a panel from the trigger row plus vertical content padding without fading
+the panel or blurring its rows; the glass material retains its transparency.
+All four clip edges move; the rows stay full-size. Placement aligns the start edge
+(mirrored in RTL), shifting upward when space below is insufficient. Opening uses
+the native default spring (0.95 / 0.35s); collapse uses 0.95 / 0.2s. The primary
+popup's `stacked` state shrinks it to 0.95 with a mask using the same timing.
+
+```kotlin
+GlassSecondaryPopup(
+    show = submenuExpanded,
+    onDismissRequest = { submenuExpanded = false },
+    anchorBounds = frozenTriggerBounds,
+    backdrop = secondaryBackdrop,
+    materialAnchor = menuAnchor, // same anchor as GlassTransformPopup
+    sizing = GlassPopupSizing(minWidth = primaryMenuWidth),
+    onDismissFinished = { submenuPresent = false },
+) {
+    GlassPopupItem(text = "Sort by", onClick = { submenuExpanded = false })
+    GlassPopupItem(text = "Name", onClick = { /* select */ })
+}
+```
+
+Keep the call composed during collapse. Freeze the trigger bounds before opening,
+and resume capturing them only after `onDismissFinished`, not as soon as `show`
+becomes false. Pass the primary button's `materialAnchor` to share blur,
+colour treatment and bloom stroke; `visuals` still supplies opacity and shadow.
+An explicit `backdrop` takes precedence; null falls back to the anchor backdrop. Back and outside
+taps request collapse; choice callbacks decide whether to keep or dismiss menus.
+Rows accept clicks during opening, but become non-interactive as soon as dismissal
+is requested, including the primary `GlassTransformPopup` while it shrinks back
+into its button. Secondary visibility must depend on the primary being open,
+never reopen the primary in reverse. The existing
+`GlassPopup(secondary = true)` signature delegates to this geometry, but does not
+provide anchor material inheritance. See `GlassPage` for the paired example.
+
+Apply `Modifier.layerBackdrop(secondaryBackdrop)` to a `Box` containing the page
+and primary menu, keep the secondary outside that `Box`, and pass
+`backdrop = secondaryBackdrop`. This includes the primary contents, scale and mask
+in the secondary blur without sampling the secondary itself. See `GlassPage` for
+the complete structure. The primary mask has its own alpha spring: 0.95 / 0.35s
+on expansion and 0.95 / 0.2s on collapse, settling at `(1 / 256) × 0.75` and hiding
+at alpha `1 / 256`, matching the source's AUTO_ALPHA behavior.
+
+Predictive Back previews the secondary collapse first; with no secondary open,
+it previews the primary transform back into its button. Cancellation springs back,
+and completion continues closing from the current gesture fraction. A shared
+`materialAnchor` synchronizes the primary scale and mask. Custom submenu arrows can
+follow the same progress using
+`arrowRotation = { rotation * (1f - menuAnchor.secondaryBackProgress) }`.
+The host must provide a navigation event dispatcher for Back gestures.
+
+The popup layer reserves space for the full shadow while its opacity changes, including predictive return to a button with no visible material at the top of the page.
+
+### Overlay imports
+
 ```kotlin
 import top.yukonga.miuix.kmp.overlay.OverlayCascadingListPopup
 import top.yukonga.miuix.kmp.basic.DropdownEntry

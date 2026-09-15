@@ -46,7 +46,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -115,6 +117,80 @@ fun TopAppBar(
     actionIconPadding: Dp = TopAppBarDefaults.ActionIconPadding,
     bottomContent: @Composable () -> Unit = {},
 ) {
+    val actionsRow =
+        @Composable {
+            Row(
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+                content = actions,
+            )
+        }
+
+    TopAppBarLayout(
+        title = title,
+        color = color,
+        titleColor = titleColor,
+        largeTitle = largeTitle,
+        largeTitleColor = largeTitleColor,
+        largeTitleBlurRadius = 0.dp,
+        subtitle = subtitle,
+        subtitleColor = subtitleColor,
+        navigationIcon = navigationIcon,
+        actions = actionsRow,
+        titlePadding = titlePadding,
+        navigationIconPadding = navigationIconPadding,
+        actionIconPadding = actionIconPadding,
+        scrollBehavior = scrollBehavior,
+        modifier = modifier,
+        defaultWindowInsetsPadding = defaultWindowInsetsPadding,
+        bottomContent = bottomContent,
+    )
+}
+
+/**
+ * An OS4 [BlurTopAppBar] whose large title blurs as it collapses.
+ *
+ * @param title The title of the [BlurTopAppBar].
+ * @param largeTitleBlurRadius How far the large title blurs out as it collapses. It reaches this
+ *   radius at the point the title has fully faded.
+ * @param modifier The modifier to be applied to the [BlurTopAppBar].
+ * @param color The background color of the [BlurTopAppBar].
+ * @param titleColor The color of the collapsed small title text.
+ * @param largeTitle The large title of the [BlurTopAppBar].
+ * @param largeTitleColor The color of the expanded large title text.
+ * @param subtitle The subtitle displayed below the title bar area.
+ * @param subtitleColor The color of the subtitle text.
+ * @param navigationIcon The content that represents the navigation icon.
+ * @param actions The content that represents the action icons.
+ * @param scrollBehavior The behavior that controls the [BlurTopAppBar].
+ * @param defaultWindowInsetsPadding Whether to apply default window insets padding.
+ * @param titlePadding The horizontal padding of the title and large title.
+ * @param navigationIconPadding The start padding of the navigation icon.
+ * @param actionIconPadding The end padding of the action icons.
+ * @param titleAlpha Draw-phase opacity applied to both title containers.
+ * @param bottomContent Content displayed below the title bar area.
+ */
+@Composable
+fun BlurTopAppBar(
+    title: String,
+    largeTitleBlurRadius: Dp,
+    modifier: Modifier = Modifier,
+    color: Color = MiuixTheme.colorScheme.surface,
+    titleColor: Color = MiuixTheme.colorScheme.onSurface,
+    largeTitle: String = title,
+    largeTitleColor: Color = MiuixTheme.colorScheme.onSurface,
+    subtitle: String = "",
+    subtitleColor: Color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+    navigationIcon: @Composable () -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {},
+    scrollBehavior: ScrollBehavior? = null,
+    defaultWindowInsetsPadding: Boolean = true,
+    titlePadding: Dp = TopAppBarDefaults.TitlePadding,
+    navigationIconPadding: Dp = TopAppBarDefaults.NavigationIconPadding,
+    actionIconPadding: Dp = TopAppBarDefaults.ActionIconPadding,
+    titleAlpha: () -> Float = { 1f },
+    bottomContent: @Composable () -> Unit = {},
+) {
     // Wrap the given actions in a Row.
     val actionsRow =
         @Composable {
@@ -131,10 +207,12 @@ fun TopAppBar(
     // app bar's defined constant height value (i.e. the ContainerHeight token).
     TopAppBarLayout(
         title = title,
+        titleAlpha = titleAlpha,
         color = color,
         titleColor = titleColor,
         largeTitle = largeTitle,
         largeTitleColor = largeTitleColor,
+        largeTitleBlurRadius = largeTitleBlurRadius,
         subtitle = subtitle,
         subtitleColor = subtitleColor,
         navigationIcon = navigationIcon,
@@ -618,6 +696,7 @@ private suspend fun settleAppBar(
  *   and writes the matching `heightOffsetLimit` from the large title's measured height.
  * @param modifier the [Modifier] to be applied to this layout.
  * @param largeTitle the large title of the [TopAppBar], if not specified, it will be the same as title.
+ * @param largeTitleBlurRadius how far the large title blurs out as it collapses.
  * @param defaultWindowInsetsPadding whether to apply default window insets padding to the [TopAppBar].
  * @param bottomContent the composable content displayed below the title bar area.
  */
@@ -637,17 +716,27 @@ private fun TopAppBarLayout(
     scrollBehavior: ScrollBehavior?,
     modifier: Modifier = Modifier,
     largeTitle: String = title,
+    largeTitleBlurRadius: Dp = 0.dp,
     defaultWindowInsetsPadding: Boolean = true,
+    titleAlpha: () -> Float = { 1f },
     bottomContent: @Composable () -> Unit = {},
 ) {
     // Producer lambdas — reads stay in layout/draw phases so scroll never recomposes this subtree.
     val scrolledOffset = remember(scrollBehavior) {
         { scrollBehavior?.state?.heightOffset ?: 0f }
     }
-    val largeTitleAlpha = remember(scrollBehavior) {
+    // The title does not merely fade out — it goes out of focus on the way, the way the source
+    // system dissolves it. `progress` is shared by both so the blur peaks exactly as the last of
+    // the title goes, instead of stopping short of it or outliving it.
+    val largeTitleFade = remember(scrollBehavior) {
         {
             val frac = scrollBehavior?.state?.collapsedFraction ?: 0f
-            1f - (frac * 3f).coerceIn(0f, 1f)
+            (frac * 3f).coerceIn(0f, 1f)
+        }
+    }
+    val largeTitleAlpha = remember(largeTitleFade) {
+        {
+            1f - largeTitleFade()
         }
     }
     val updateHeightOffsetLimit = remember(scrollBehavior) {
@@ -722,7 +811,7 @@ private fun TopAppBarLayout(
                     .layoutId("title")
                     .padding(horizontal = titlePadding)
                     .graphicsLayer {
-                        alpha = smallTitleAlpha.value
+                        alpha = smallTitleAlpha.value * titleAlpha()
                         translationY = smallTitleTranslationY.value
                     },
             ) {
@@ -747,7 +836,22 @@ private fun TopAppBarLayout(
                     .layoutId("largeTitle")
                     .padding(top = TopAppBarDefaults.CollapsedHeight)
                     .padding(horizontal = titlePadding)
-                    .graphicsLayer { alpha = largeTitleAlpha() },
+                    .graphicsLayer {
+                        alpha = largeTitleAlpha() * titleAlpha()
+                        // Assigned on every path, including the disabled one: the layer keeps
+                        // whatever it was last given, so a radius that drops back to zero would
+                        // otherwise leave the last blur on the title for good.
+                        val radius = if (largeTitleBlurRadius > 0.dp) {
+                            largeTitleBlurRadius.toPx() * largeTitleFade()
+                        } else {
+                            0f
+                        }
+                        renderEffect = if (radius > 0.1f) {
+                            BlurEffect(radius, radius, TileMode.Decal)
+                        } else {
+                            null
+                        }
+                    },
             ) {
                 Column(
                     modifier = Modifier
@@ -777,7 +881,7 @@ private fun TopAppBarLayout(
                     Modifier
                         .layoutId("smallSubtitle")
                         .graphicsLayer {
-                            alpha = smallTitleAlpha.value
+                            alpha = smallTitleAlpha.value * titleAlpha()
                             translationY = smallTitleTranslationY.value
                         },
                 ) {
@@ -803,8 +907,8 @@ private fun TopAppBarLayout(
                     Modifier
                 },
             )
-            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
             .clipToBounds()
+            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
             .pointerInput(Unit) {
                 detectTapGestures { /* Consume click */ }
             },
@@ -1028,8 +1132,8 @@ private fun SmallTopAppBarLayout(
                     Modifier
                 },
             )
-            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
             .clipToBounds()
+            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
             .pointerInput(Unit) {
                 detectTapGestures { /* Consume click */ }
             },
